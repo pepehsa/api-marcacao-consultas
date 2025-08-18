@@ -96,4 +96,39 @@ public class UsuarioService {
 
         return usuario;
     }
+
+    public Usuario buscarPorEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    }
+
+    // ⚠️ MÉTODO TEMPORÁRIO APENAS PARA TESTES - REMOVER EM PRODUÇÃO
+    public String resetarSenhasParaTeste() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        StringBuilder resultado = new StringBuilder("Senhas resetadas para:\n\n");
+
+        for (Usuario usuario : usuarios) {
+            String novaSenha = "123456"; // Senha padrão para todos os usuários em teste
+            usuario.setSenha(passwordEncoder.encode(novaSenha));
+            usuarioRepository.save(usuario);
+
+            resultado.append(String.format("- %s (%s): senha = %s\n",
+                    usuario.getNome(), usuario.getEmail(), novaSenha));
+        }
+
+        return resultado.toString();
+    }/**
+     * Altera a senha de um usuário específico (apenas admin)
+     */
+    public Usuario alterarSenha(Long usuarioId, String novaSenha) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        // Criptografa a nova senha
+        String senhaCriptografada = passwordEncoder.encode(novaSenha);
+        usuario.setSenha(senhaCriptografada);
+
+        return usuarioRepository.save(usuario);
+    }
+
 }
